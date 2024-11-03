@@ -1,10 +1,43 @@
-﻿services:
-  webapi:
-    image: webapi
+﻿#services:
+#  webapi:
+#    image: webapi
+#    build:
+#      context: .
+#      dockerfile: webapi/Dockerfile
+#    ports:
+#      - "5000:5001"  #Access port 5000, port 5001 inside the container
+#    environment:
+#      - ASPNETCORE_URLS=http://+:5001
+
+services:
+  api:
     build:
       context: .
       dockerfile: webapi/Dockerfile
     ports:
-      - "5000:5001"  #Access port 5000, port 5001 inside the container
+      - "5000:5001" # 主机的 5000 端口映射到容器的 5001 端口
     environment:
-      - ASPNETCORE_URLS=http://+:5001
+     - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - postgres-db
+    networks:
+      - mynetwork
+
+  postgres-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: YourPassword
+      POSTGRES_DB: MyDatabase
+    ports:
+      - "5432:5432" # 将本地主机的 5432 端口映射到容器的 5432 端口
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+networks:
+  mynetwork:
